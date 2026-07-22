@@ -3,7 +3,12 @@ import { MatchResult } from "@/types/match";
 const STOP_WORDS = new Set(["a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "in", "is", "it", "of", "on", "the", "to", "with"]);
 
 export function tokenize(text: string): string[] {
-  return text.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(w => w.length > 1 && !STOP_WORDS.has(w));
+  const unigrams = text.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(w => w.length > 1 && !STOP_WORDS.has(w));
+  const bigrams: string[] = [];
+  for (let i = 0; i < unigrams.length - 1; i++) {
+    bigrams.push(`${unigrams[i]} ${unigrams[i + 1]}`);
+  }
+  return [...unigrams, ...bigrams];
 }
 
 export function computeCosineSimilarity(textA: string, textB: string): number {
