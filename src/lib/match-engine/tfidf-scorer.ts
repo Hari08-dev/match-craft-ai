@@ -37,22 +37,32 @@ export function calculateMatchScore(resumeText: string, jobDescription: string):
   const missing = uniqueJob.filter(t => !resumeSet.has(t));
 
   const similarity = computeCosineSimilarity(resumeText, jobDescription);
-  const score = Math.min(100, Math.round(similarity * 100));
+  const keywordRatio = uniqueJob.length > 0 ? matched.length / uniqueJob.length : 0;
+  
+  // Weighted score calculation: 70% Cosine Vector + 30% Keyword Density Ratio
+  const rawScore = Math.round((similarity * 70) + (keywordRatio * 30));
+  const score = Math.min(100, Math.max(0, rawScore));
 
   let grade: MatchResult['grade'] = 'D';
-  if (score >= 85) grade = 'S';
-  else if (score >= 70) grade = 'A';
-  else if (score >= 55) grade = 'B';
-  else if (score >= 40) grade = 'C';
+  if (score >= 88) grade = 'S';
+  else if (score >= 75) grade = 'A';
+  else if (score >= 60) grade = 'B';
+  else if (score >= 45) grade = 'C';
+
+  const bulletSuggestions = missing.slice(0, 4).map(kw => 
+    `Add quantitative experience metric explicitly referencing "${kw.toUpperCase()}".`
+  );
 
   return {
     score,
     grade,
-    matchedKeywords: matched.slice(0, 10),
-    missingKeywords: missing.slice(0, 10),
+    matchedKeywords: matched.slice(0, 12),
+    missingKeywords: missing.slice(0, 12),
+    bulletSuggestions,
     vectorMetrics: {
       cosineSimilarity: Number(similarity.toFixed(4)),
-      tfIdfScore: Number((similarity * 1.1).toFixed(4)),
+      tfIdfScore: Number((similarity * 1.15).toFixed(4)),
+      tokenDensityRatio: Number(keywordRatio.toFixed(4))
     }
   };
 }
